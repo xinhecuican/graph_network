@@ -1,0 +1,19 @@
+{
+    "args": {
+        "alpha": 0.2,
+        "dataset": "cora",
+        "degree": 2,
+        "dropout": 0.5,
+        "epoch": 600,
+        "hidden": 16,
+        "lr": 0.01,
+        "nb_heads": 8,
+        "seed": 42,
+        "weight_decay": 0.0005
+    },
+    "result": {
+        "gat": 0.16466666666666668,
+        "gcn": 0.16466666666666668,
+        "sgc": 0.16266666666666668
+    }
+}
