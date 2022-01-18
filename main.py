@@ -8,7 +8,7 @@ from datasets.pubmed import pubmed
 from models.GAT import GAT, SpGAT
 from models.GCN import GCN
 from models.SGC import SGC
-from trainer import train_gcn, train_sgc, accuracy
+from trainer import train_gcn, train_sgc, accuracy, visualize
 from utils.utils import sgc_precompute
 import torch.nn.functional as F
 
@@ -25,7 +25,7 @@ parser.add_argument('--lr', type=float, default=0.01,
 # 权重衰减
 parser.add_argument('--weight_decay', type=float, default=5e-4,
                     help='Weight decay (L2 loss on parameters)')
-parser.add_argument('--hidden', type=int, default=8,
+parser.add_argument('--hidden', type=int, default=16,
                     help='Number of hidden units')
 parser.add_argument('--dropout', type=float, default=0.6,
                     help='Dropout rate (1 - keep probability)')
@@ -33,8 +33,9 @@ parser.add_argument('--nb_heads', type=int, default=8, help='Number of head atte
 parser.add_argument('--alpha', type=float, default=0.2, help='Alpha for the leaky_relu.')
 parser.add_argument('--degree', type=int, default=2,
                     help='degree of the approximation.')
-parser.add_argument('--model', default='sgc')
-parser.add_argument('--dataset', default='citeseer')
+parser.add_argument('--model', default='gcn')
+parser.add_argument('--dataset', default='cora')
+parser.add_argument('--debug', default=False)
 
 # 如果程序不禁止使用gpu且当前主机的gpu可用，arg.cuda就为True
 args = parser.parse_args()
@@ -53,12 +54,20 @@ def main(args):
     if args.model == 'gcn':
         model = GCN(dataset.features.shape[1], args.hidden, dataset.labels.max().item() + 1, dropout=args.dropout)
     elif args.model == 'gat':
-        model = SpGAT(nfeat=dataset.features.shape[1],
-                    nhid=args.hidden,
-                    nclass=dataset.labels.max().item() + 1,
-                    dropout=args.dropout,
-                    nheads=args.nb_heads,
-                    alpha=args.alpha)
+        if args.debug:
+            model = GAT(nfeat=dataset.features.shape[1],
+                        nhid=args.hidden,
+                        nclass=dataset.labels.max().item() + 1,
+                        dropout=args.dropout,
+                        nheads=args.nb_heads,
+                        alpha=args.alpha)
+        else:
+            model = SpGAT(nfeat=dataset.features.shape[1],
+                          nhid=args.hidden,
+                          nclass=dataset.labels.max().item() + 1,
+                          dropout=args.dropout,
+                          nheads=args.nb_heads,
+                          alpha=args.alpha)
     elif args.model == 'sgc':
         model = SGC(nfeat=dataset.features.shape[1],
                     nclass=dataset.labels.max().item() + 1)
@@ -66,7 +75,7 @@ def main(args):
         model = None
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
-    if args.cuda:
+    if args.cuda and not args.debug:
         dataset.features = dataset.features.cuda()
         dataset.adj = dataset.adj.cuda()
         dataset.labels = dataset.labels.cuda()
@@ -92,7 +101,7 @@ def main(args):
         print('eval',
               'acc_val: {:.4f}'.format(acc_test.item()))
         return acc_test
-
+    visualize(model, args, dataset)
     return compute_test()
 
 

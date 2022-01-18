@@ -28,6 +28,7 @@ parser.add_argument('--degree', type=int, default=2,
                     help='degree of the approximation.')
 parser.add_argument('--model', default='gcn')
 parser.add_argument('--dataset', default='cora')
+parser.add_argument('--debug', default=False)
 # 如果程序不禁止使用gpu且当前主机的gpu可用，arg.cuda就为True
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
@@ -69,14 +70,16 @@ def write_ans(args, ans):
         f.write(json.dumps(dict))
 
 
-ans = {}
-run_time = 5
-for model in ['gcn', 'gat', 'sgc']:
-    args.model = model
-    tmp_res = 0
-    for i in range(run_time):
-        res = main(args)
-        tmp_res += res
-    ans[model] = float(tmp_res / run_time)
+for weight in [0]:
+    args.nb_heads = weight
+    ans = {}
+    run_time = 5
+    for model in ['gcn', 'gat', 'sgc']:
+        args.model = model
+        tmp_res = 0
+        for i in range(run_time):
+            res = main(args)
+            tmp_res += res
+        ans[model] = float(tmp_res / run_time)
 
-write_ans(args, ans)
+    write_ans(args, ans)

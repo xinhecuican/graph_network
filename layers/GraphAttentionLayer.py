@@ -21,11 +21,11 @@ class GraphAttentionLayer(Module):
     def forward(self, inp, adj):
         h = torch.mm(inp, self.w)
         N = h.size()[0]
-        # repeat: 重复若干次，例如(2708, 16) 经过(1, N)的repeat后变为了 (2708, 16 * 2708)
-        # view: 将矩阵按行展开成一维(内存东西没变)然后按照给定的shape生成新的矩阵(N * N, -1)后变成(2708*2708, 16)
+        # repeat: 重复若干次，例如(2708, 8) 经过(1, N)的repeat后变为了 (2708, 8 * 2708)
+        # view: 将矩阵按行展开成一维(内存东西没变)然后按照给定的shape生成新的矩阵(N * N, -1)后变成(2708*2708, 8)
         # 前面一个矩阵经过处理之后形式为:第一个2708行中的内容全是第0个点的特征，依此类推
         # 后面一个矩阵形式为: 第一个2708行是第0个到第2707节点的特征，第二个2708又是第0个到第2707个节点特征
-        # 也就是说最后的矩阵中第一行的前16个特征是第一个点的特征，而后16个特征是0-2707节点的特征
+        # 也就是说最后的矩阵中第一行的前8个特征是第一个点的特征，而后8个特征是0-2707节点的特征
         a_input = torch.cat([h.repeat(1, N).view(N*N, -1), h.repeat(N, 1)], dim=1).view(N, -1, 2*self.out_features)
         e = self.leakyrelu(torch.matmul(a_input, self.a).squeeze(2))
 
