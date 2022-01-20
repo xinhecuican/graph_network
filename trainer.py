@@ -80,11 +80,12 @@ def visualize(model, args, dataset):
 def train_gcn(model, optimizer, dataset, args, epoch):
     model.train()
     optimizer.zero_grad()
-
+    torch.autograd.set_detect_anomaly(True)
     output = model(dataset.features, dataset.adj)
     loss_train = F.cross_entropy(output[dataset.idx_train], dataset.labels[dataset.idx_train])
     acc_train = accuracy(output[dataset.idx_train], dataset.labels[dataset.idx_train])
-    loss_train.backward()
+    with torch.autograd.detect_anomaly():
+        loss_train.backward()
     optimizer.step()
     if not args.fastmode:
         model.eval()

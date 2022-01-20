@@ -5,6 +5,7 @@ from torch import optim
 from datasets.citeseer import citeseer
 from datasets.cora import cora
 from datasets.pubmed import pubmed
+from models.ExtendGAT import ExtendSpGAT
 from models.GAT import GAT, SpGAT
 from models.GCN import GCN
 from models.SGC import SGC
@@ -18,24 +19,26 @@ parser.add_argument('--no-cuda', action='store_true', default=False,
 parser.add_argument('--fastmode', action='store_true', default=False,
                     help='Validate during traing pass')
 parser.add_argument('--seed', type=int, default=42, help='Random seed')
-parser.add_argument('--epochs', type=int, default=100,
+parser.add_argument('--epochs', type=int, default=200,
                     help='Number of epochs to train')
 parser.add_argument('--lr', type=float, default=0.01,
                     help='Initial learning rate')
 # 权重衰减
 parser.add_argument('--weight_decay', type=float, default=5e-4,
                     help='Weight decay (L2 loss on parameters)')
-parser.add_argument('--hidden', type=int, default=16,
+parser.add_argument('--hidden', type=int, default=8,
                     help='Number of hidden units')
 parser.add_argument('--dropout', type=float, default=0.6,
                     help='Dropout rate (1 - keep probability)')
-parser.add_argument('--nb_heads', type=int, default=8, help='Number of head attentions.')
+parser.add_argument('--nb_heads', type=int, default=2, help='Number of head attentions.')
 parser.add_argument('--alpha', type=float, default=0.2, help='Alpha for the leaky_relu.')
 parser.add_argument('--degree', type=int, default=2,
                     help='degree of the approximation.')
-parser.add_argument('--model', default='gcn')
+parser.add_argument('--model', default='egat')
 parser.add_argument('--dataset', default='cora')
 parser.add_argument('--debug', default=False)
+parser.add_argument('--hop_num', type=int, default=3)
+parser.add_argument('--hop_alpha', type=float, default=0.15)
 
 # 如果程序不禁止使用gpu且当前主机的gpu可用，arg.cuda就为True
 args = parser.parse_args()
@@ -68,6 +71,15 @@ def main(args):
                           dropout=args.dropout,
                           nheads=args.nb_heads,
                           alpha=args.alpha)
+    elif args.model == 'egat':
+        model = ExtendSpGAT(nfeat=dataset.features.shape[1],
+                            nhid=args.hidden,
+                            nclass=dataset.labels.max().item() + 1,
+                            dropout=args.dropout,
+                            nheads=args.nb_heads,
+                            alpha=args.alpha,
+                            hop_num=args.hop_num,
+                            hop_alpha=args.hop_alpha)
     elif args.model == 'sgc':
         model = SGC(nfeat=dataset.features.shape[1],
                     nclass=dataset.labels.max().item() + 1)
@@ -76,10 +88,11 @@ def main(args):
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
     if args.cuda and not args.debug:
-        dataset.features = dataset.features.cuda()
-        dataset.adj = dataset.adj.cuda()
-        dataset.labels = dataset.labels.cuda()
-        model = model.cuda()
+        device = torch.device('cuda:0')
+        dataset.features = dataset.features.to(device)
+        dataset.adj = dataset.adj.to(device)
+        dataset.labels = dataset.labels.to(device)
+        model = model.to(device)
     if args.model == 'sgc':
         dataset.features, _ = sgc_precompute(dataset.features, dataset.adj, args.degree)
     val = 0
@@ -88,7 +101,7 @@ def main(args):
             val = train_sgc(model, optimizer, dataset, args, epoch)
         elif args.model == 'gcn':
             val = train_gcn(model, optimizer, dataset, args, epoch)
-        elif args.model == 'gat':
+        elif args.model == 'gat' or args.model == 'egat':
             val = train_gcn(model, optimizer, dataset, args, epoch)
 
     def compute_test():
@@ -101,7 +114,7 @@ def main(args):
         print('eval',
               'acc_val: {:.4f}'.format(acc_test.item()))
         return acc_test
-    visualize(model, args, dataset)
+
     return compute_test()
 
 
