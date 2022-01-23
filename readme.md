@@ -3,14 +3,23 @@
 windows11 python3.8
 
 matplotlib==3.3.4
+
 networkx==2.5
+
 numpy==1.20.1
+
 scikit_learn==1.0.2
+
 scipy==1.6.2
+
 torch==1.10.1
+
 torch_geometric==2.0.3
+
 torch_sparse==0.6.12
+
 tqdm==4.59.0
+
 visdom==0.1.8.9
 
 # 数据集下载
