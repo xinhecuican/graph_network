@@ -1,0 +1,1 @@
+{"args": {"alpha": 0.2, "dataset": "citeseer", "degree": 2, "dropout": 0.7, "epoch": 200, "hidden": 8, "lr": 0.01, "nb_heads": 8, "seed": 42, "weight_decay": 0.0005, "att_type": "li"}, "result": {"gcn": 0.671, "gat": 0.681, "sgc": 0.651, "egat": 0.684}}
