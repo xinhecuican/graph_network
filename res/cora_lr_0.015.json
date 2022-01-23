@@ -1,1 +1,21 @@
-{"args": {"alpha": 0.2, "dataset": "cora", "degree": 2, "dropout": 0.5, "epoch": 200, "hidden": 8, "lr": 0.015, "nb_heads": 8, "seed": 42, "weight_decay": 0.0005, "att_type": "li"}, "result": {"gcn": 0.653, "gat": 0.797, "sgc": 0.724, "egat": 0.779}}
+{
+  "args": {
+    "alpha": 0.2,
+    "dataset": "cora",
+    "degree": 2,
+    "dropout": 0.5,
+    "epoch": 200,
+    "hidden": 8,
+    "lr": 0.015,
+    "nb_heads": 8,
+    "seed": 42,
+    "weight_decay": 0.0005,
+    "att_type": "li"
+  },
+  "result": {
+    "gcn": 0.839,
+    "gat": 0.845,
+    "sgc": 0.8230000000000001,
+    "egat": 0.835
+  }
+}

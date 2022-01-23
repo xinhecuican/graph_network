@@ -1,1 +1,1 @@
-{"args": {"alpha": 0.2, "dataset": "cora", "degree": 2, "dropout": 0.5, "epoch": 200, "hidden": 16, "lr": 0.01, "nb_heads": 64, "seed": 42, "weight_decay": 0.0005}, "result": {"gcn": 0.8300000000000001, "gat": 0.8028000000000001, "sgc": 0.8170000000000001}}
+{"args": {"alpha": 0.2, "dataset": "cora", "degree": 2, "dropout": 0.5, "epoch": 200, "hidden": 8, "lr": 0.01, "nb_heads": 64, "seed": 42, "weight_decay": 0.0005, "att_type": "li"}, "result": {"gcn": 0.836, "gat": 0.8160000000000001, "sgc": 0.8180000000000001, "egat": 0.8220000000000001}}

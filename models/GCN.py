@@ -10,14 +10,12 @@ class GCN(nn.Module):
 
     def __init__(self, nfeat, nhid, nclass, dropout):
         super(GCN, self).__init__()
-        self.conv1 = GraphConvolutionLayer(nfeat, 64, True)
-        self.conv3 = GraphConvolutionLayer(64, nhid, True)
+        self.conv1 = GraphConvolutionLayer(nfeat, nhid, True)
         self.conv2 = GraphConvolutionLayer(nhid, nclass, False)
         self.dropout = dropout
 
     def forward(self, x, adj):
         x = relu(self.conv1(x, adj))
         x = F.dropout(x, self.dropout, training=self.training)
-        x = self.conv3(x, adj)
         x = self.conv2(x, adj)
         return F.softmax(x, dim=1)

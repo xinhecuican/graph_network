@@ -9,7 +9,7 @@ from models.ExtendGAT import ExtendSpGAT
 from models.GAT import GAT, SpGAT
 from models.GCN import GCN
 from models.SGC import SGC
-from trainer import train_gcn, train_sgc, accuracy, visualize
+from trainer import train_gcn, train_sgc, accuracy, visualize, accuracy_class
 from utils.utils import sgc_precompute
 import torch.nn.functional as F
 
@@ -21,16 +21,16 @@ parser.add_argument('--fastmode', action='store_true', default=False,
 parser.add_argument('--seed', type=int, default=42, help='Random seed')
 parser.add_argument('--epochs', type=int, default=200,
                     help='Number of epochs to train')
-parser.add_argument('--lr', type=float, default=0.01,
+parser.add_argument('--lr', type=float, default=0.005,
                     help='Initial learning rate')
 # 权重衰减
 parser.add_argument('--weight_decay', type=float, default=5e-4,
                     help='Weight decay (L2 loss on parameters)')
 parser.add_argument('--hidden', type=int, default=8,
                     help='Number of hidden units')
-parser.add_argument('--dropout', type=float, default=0.6,
+parser.add_argument('--dropout', type=float, default=0.5,
                     help='Dropout rate (1 - keep probability)')
-parser.add_argument('--nb_heads', type=int, default=2, help='Number of head attentions.')
+parser.add_argument('--nb_heads', type=int, default=8, help='Number of head attentions.')
 parser.add_argument('--alpha', type=float, default=0.2, help='Alpha for the leaky_relu.')
 parser.add_argument('--degree', type=int, default=2,
                     help='degree of the approximation.')
@@ -39,21 +39,23 @@ parser.add_argument('--dataset', default='cora')
 parser.add_argument('--debug', default=False)
 parser.add_argument('--hop_num', type=int, default=3)
 parser.add_argument('--hop_alpha', type=float, default=0.15)
+parser.add_argument('--att_type', default='mx')
 
 # 如果程序不禁止使用gpu且当前主机的gpu可用，arg.cuda就为True
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 
 
-def main(args):
-    if args.dataset == 'cora':
-        dataset = cora('data\\cora\\', args.model)
-    elif args.dataset == 'pubmed':
-        dataset = pubmed(args.model)
-    elif args.dataset == 'citeseer':
-        dataset = citeseer(args.model)
-    else:
-        dataset = None
+def main(args, dataset=None):
+    if dataset is None:
+        if args.dataset == 'cora':
+            dataset = cora('data\\cora\\', args.model)
+        elif args.dataset == 'pubmed':
+            dataset = pubmed(args.model)
+        elif args.dataset == 'citeseer':
+            dataset = citeseer(args.model)
+        else:
+            dataset = None
     if args.model == 'gcn':
         model = GCN(dataset.features.shape[1], args.hidden, dataset.labels.max().item() + 1, dropout=args.dropout)
     elif args.model == 'gat':
@@ -79,7 +81,8 @@ def main(args):
                             nheads=args.nb_heads,
                             alpha=args.alpha,
                             hop_num=args.hop_num,
-                            hop_alpha=args.hop_alpha)
+                            hop_alpha=args.hop_alpha,
+                            att_type=args.att_type)
     elif args.model == 'sgc':
         model = SGC(nfeat=dataset.features.shape[1],
                     nclass=dataset.labels.max().item() + 1)
@@ -111,8 +114,11 @@ def main(args):
         else:
             output = model(dataset.features, dataset.adj)
         acc_test = accuracy(output[dataset.idx_test], dataset.labels[dataset.idx_test])
+        acc_class = accuracy_class(output[dataset.idx_test], dataset.labels[dataset.idx_test])
         print('eval',
               'acc_val: {:.4f}'.format(acc_test.item()))
+        for acc in acc_class:
+            print(acc)
         return acc_test
 
     return compute_test()

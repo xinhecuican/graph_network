@@ -11,8 +11,22 @@ def accuracy(output, labels):
     preds = output.max(1)[1].type_as(labels)
     # 记录等于preds的label eq:equal
     correct = preds.eq(labels).double()
+    correct_class = []
+    for i in range(labels.max().item()):
+        correct_class.append((correct[labels.eq(i).nonzero()].sum() / len(labels.eq(i))).item())
     correct = correct.sum()
     return correct / len(labels)
+
+
+def accuracy_class(output, labels):
+    # 使用type_as(tesnor)将张量转换为给定类型的张量。
+    preds = output.max(1)[1].type_as(labels)
+    # 记录等于preds的label eq:equal
+    correct = preds.eq(labels).double()
+    correct_class = []
+    for i in range(labels.max().item()):
+        correct_class.append((correct[labels.eq(i).nonzero()].sum() / len(labels.eq(i).nonzero())).item())
+    return correct_class
 
 
 def visualize(model, args, dataset):
@@ -80,12 +94,10 @@ def visualize(model, args, dataset):
 def train_gcn(model, optimizer, dataset, args, epoch):
     model.train()
     optimizer.zero_grad()
-    torch.autograd.set_detect_anomaly(True)
     output = model(dataset.features, dataset.adj)
     loss_train = F.cross_entropy(output[dataset.idx_train], dataset.labels[dataset.idx_train])
     acc_train = accuracy(output[dataset.idx_train], dataset.labels[dataset.idx_train])
-    with torch.autograd.detect_anomaly():
-        loss_train.backward()
+    loss_train.backward()
     optimizer.step()
     if not args.fastmode:
         model.eval()

@@ -27,7 +27,7 @@ class ExtendGAT(nn.Module):
 
 
 class ExtendSpGAT(nn.Module):
-    def __init__(self, nfeat, nhid, nclass, dropout, alpha, nheads, hop_num, hop_alpha):
+    def __init__(self, nfeat, nhid, nclass, dropout, alpha, nheads, hop_num, hop_alpha, att_type):
         """Sparse version of GAT."""
         super(ExtendSpGAT, self).__init__()
         self.dropout = dropout
@@ -38,6 +38,7 @@ class ExtendSpGAT(nn.Module):
                                                alpha=alpha,
                                                hop_num=hop_num,
                                                hop_alpha=hop_alpha,
+                                               att_type=att_type,
                                                concat=True) for _ in range(nheads)]
         for i, attention in enumerate(self.attentions):
             self.add_module('attention_{}'.format(i), attention)
@@ -48,6 +49,7 @@ class ExtendSpGAT(nn.Module):
                                            alpha=alpha,
                                            hop_num=hop_num,
                                            hop_alpha=hop_alpha,
+                                           att_type=att_type,
                                            concat=False)
 
     def forward(self, x, adj):

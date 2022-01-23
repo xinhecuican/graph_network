@@ -101,7 +101,10 @@ class SpGraphAttentionLayer(nn.Module):
         dv = 'cuda' if input.is_cuda else 'cpu'
 
         N = input.size()[0]
-        edge = adj.nonzero().t()
+        if adj.is_sparse:
+            edge = adj._indices()
+        else:
+            edge = adj.nonzero().t()
 
         h = torch.mm(input, self.W)
         # h: N x out

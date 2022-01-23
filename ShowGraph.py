@@ -9,11 +9,12 @@ default_param = {
     'degree': 2,
     'dropout': 0.5,
     'epoch': 200,
-    'hidden': 16,
+    'hidden': 8,
     'lr': 0.01,
     'nb_heads': 8,
     'seed': 42,
-    'weight_decay': 5e-4
+    'weight_decay': 5e-4,
+    'att_type': 'li'
 }
 
 
@@ -48,14 +49,14 @@ def get_data(prefix, dir='res/', dataset='cora'):
     files = os.listdir(dir)
     ans = []
     for file in files:
-        if file.find(prefix) != -1:
+        if file.find(prefix) != -1 and file.find(dataset) != -1:
             with open('res/' + file, 'r') as f:
                 result = json.load(f)['result']
             ele = {
                 file.split('_')[-1][: -5]: result
             }
             ans.append(ele)
-    with open('res/cora_.json', 'r') as f:
+    with open(f'res/{dataset}_.json', 'r') as f:
         result = json.load(f)['result']
     ans.append({default_param[prefix]: result})
     quick(ans, 0, len(ans) - 1)
@@ -63,20 +64,24 @@ def get_data(prefix, dir='res/', dataset='cora'):
 
 
 parameter = 'nb_heads'
-data = get_data(parameter)
+dataset = 'citeseer'
+data = get_data(parameter, dataset=dataset)
 x = get_keys(data)
 gcn = []
 gat = []
 sgc = []
+egat = []
 for ele in data:
     for (key, value) in ele.items():
         gcn.append(value['gcn'])
         gat.append(value['gat'])
         sgc.append(value['sgc'])
+        egat.append(value['egat'])
 
 plt.plot(x, gcn, '.-', label='gcn')
 plt.plot(x, gat, '.-', label='gat')
 plt.plot(x, sgc, '.-', label='sgc')
+plt.plot(x, egat, '.-', label='egat')
 plt.title(parameter)
 plt.legend()
 plt.show()

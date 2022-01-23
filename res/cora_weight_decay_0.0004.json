@@ -5,15 +5,17 @@
     "degree": 2,
     "dropout": 0.5,
     "epoch": 200,
-    "hidden": 16,
+    "hidden": 8,
     "lr": 0.01,
     "nb_heads": 8,
     "seed": 42,
-    "weight_decay": 0.0004
+    "weight_decay": 0.0004,
+    "att_type": "li"
   },
   "result": {
-    "gcn": 0.8296,
-    "gat": 0.8272,
-    "sgc": 0.8110000000000002
+    "gcn": 0.8270000000000001,
+    "gat": 0.833,
+    "sgc": 0.812,
+    "egat": 0.8280000000000001
   }
 }

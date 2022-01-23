@@ -145,7 +145,7 @@ class SpHopAttentionLayer(nn.Module):
     Sparse version GAT layer, similar to https://arxiv.org/abs/1710.10903
     """
 
-    def __init__(self, in_features, out_features, dropout, alpha, hop_num, hop_alpha, concat=True):
+    def __init__(self, in_features, out_features, dropout, alpha, hop_num, hop_alpha, att_type, concat=True):
         super(SpHopAttentionLayer, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -153,12 +153,16 @@ class SpHopAttentionLayer(nn.Module):
         self.concat = concat
         self.hop_num = hop_num
         self.hop_alpha = hop_alpha
+        self.att_type = att_type
 
         self.W = nn.Parameter(torch.zeros(size=(in_features, out_features)))
         nn.init.xavier_normal_(self.W.data, gain=1.414)
 
-        self.a = nn.Parameter(torch.zeros(size=(2 * out_features, 2 * out_features)))
-        nn.init.xavier_normal_(self.a.data, gain=1.414)
+        if self.att_type == 'li' or self.att_type == 'mx':
+            self.a = nn.Parameter(torch.zeros(size=(2 * out_features, 2 * out_features)))
+            nn.init.xavier_normal_(self.a.data, gain=1.414)
+        elif self.att_type == 'dp':
+            pass
 
         self.dropout = nn.Dropout(dropout)
         self.leakyrelu = nn.LeakyReLU(self.alpha)
@@ -169,7 +173,10 @@ class SpHopAttentionLayer(nn.Module):
         dv = 'cuda' if input.is_cuda else 'cpu'
 
         N = input.size()[0]
-        edge = torch.nonzero(adj).t()
+        if adj.is_sparse:
+            edge = adj._indices()
+        else:
+            edge = adj.nonzero().t()
         h = torch.mm(input, self.W)
         # h: N x out
         assert not torch.isnan(h).any()
@@ -177,7 +184,14 @@ class SpHopAttentionLayer(nn.Module):
         # Self-attention on the nodes - Shared attention mechanism
         edge_h = torch.cat((h[edge[0, :], :], h[edge[1, :], :]), dim=1).t()
         # edge: 2*D x E
-        edge_e = torch.exp(-self.leakyrelu(self.a.mm(edge_h).sum(0).squeeze()))
+        if self.att_type == 'li':
+            edge_e = torch.exp(-self.leakyrelu(self.a.mm(edge_h).sum(0).squeeze()))
+        elif self.att_type == 'dp':
+            conv_tensor = h[edge[0, :], :] * h[edge[1, :], :]
+            edge_e = torch.exp(-self.leakyrelu(conv_tensor.sum(1).squeeze()))
+        elif self.att_type == 'mx':
+            conv_tensor = h[edge[0, :], :] * h[edge[1, :], :]
+            edge_e = torch.exp(-self.leakyrelu(self.a.mm(edge_h).sum(0) * torch.sigmoid(conv_tensor.sum(1).squeeze())))
         assert not torch.isnan(edge_e).any()
         # edge_e: E
         # tmp_edge = edge

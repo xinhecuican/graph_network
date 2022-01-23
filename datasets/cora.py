@@ -28,10 +28,10 @@ class cora(torch.utils.data.Dataset):
                                    shape=(self.labels.shape[0], self.labels.shape[0]), dtype=np.float32)
         self.adj = self.adj + self.adj.T.multiply(self.adj.T > self.adj) - self.adj.multiply(self.adj.T > self.adj)
         self.adj = normalize(self.adj + eye(self.adj.shape[0]))
-        if model == 'gat' or model == 'egat':
-            self.adj = torch.FloatTensor(np.array(self.adj.todense()))
-        else:
-            self.adj = sparse_mx_to_torch_sparse_tensor(self.adj)
+        # if model == 'gat' or model == 'egat':
+        #     self.adj = torch.FloatTensor(np.array(self.adj.todense()))
+        # else:
+        self.adj = sparse_mx_to_torch_sparse_tensor(self.adj)
         idx_train = range(140)
         idx_val = range(200, 500)
         idx_test = range(500, 1500)

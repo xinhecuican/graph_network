@@ -1,1 +1,21 @@
-{"args": {"alpha": 0.2, "dataset": "citeseer", "degree": 2, "dropout": 0.5, "epoch": 400, "hidden": 8, "lr": 0.01, "nb_heads": 8, "seed": 42, "weight_decay": 0.0005, "att_type": "li"}, "result": {"gcn": 0.672, "gat": 0.674, "sgc": 0.658, "egat": 0.68}}
+{
+  "args": {
+    "alpha": 0.2,
+    "dataset": "citeseer",
+    "degree": 2,
+    "dropout": 0.5,
+    "epoch": 400,
+    "hidden": 8,
+    "lr": 0.01,
+    "nb_heads": 8,
+    "seed": 42,
+    "weight_decay": 0.0005,
+    "att_type": "li"
+  },
+  "result": {
+    "gcn": 0.672,
+    "gat": 0.674,
+    "sgc": 0.658,
+    "egat": 0.68
+  }
+}
